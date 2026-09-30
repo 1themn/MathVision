@@ -2,6 +2,12 @@ import numpy as np
 import sympy as sp
 
 
+@dataclass
+class GraphData:
+    x_values: np.ndarray
+    y_values: np.ndarray
+    expression: sp.Expr
+
 
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -41,19 +47,23 @@ def calculate_values(expression, x, x_min, x_max, points):
 
     y_values[~np.isfinite(y_values)] = np.nan
 
-    return x_values, y_values
+    return GraphData(
+        x_values,
+        y_values,
+        expression
+    )
 
 
 import matplotlib.pyplot as plt
 
 
 def plot_graph(graphs):
-    for x_values, y_values, expression in graphs:
+    for graph in graphs:
         plt.plot(
-            x_values,
-            y_values,
-            label=f"y = {expression}"
-        )
+            graph.x_values,
+            graph.y_values,
+            label=f"y = {graph.expression}"
+    )
 
     plt.axhline(0)
     plt.axvline(0)

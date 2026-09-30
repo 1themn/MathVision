@@ -37,6 +37,14 @@ for x, expression in equations:
         points
     )
 
-    graphs.append((x_values, y_values, expression)) 
+    graphs.append(
+        calculate_values(
+            expression,
+            x,
+            x_min,
+            x_max,
+            points
+        )
+    )
 
 plot_graph(graphs)
