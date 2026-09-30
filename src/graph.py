@@ -65,12 +65,28 @@ import matplotlib.pyplot as plt
 
 
 def plot_graph(graphs):
+    all_y_values = []
+
     for graph in graphs:
         plt.plot(
             graph.x_values,
             graph.y_values,
             label=f"y = {graph.expression}"
-    )
+        )
+
+        valid_y = graph.y_values[np.isfinite(graph.y_values)]
+        all_y_values.extend(valid_y)
+
+    if all_y_values:
+        y_min = min(all_y_values)
+        y_max = max(all_y_values)
+
+        padding = (y_max - y_min) * 0.05
+
+        plt.ylim(
+            y_min - padding,
+            y_max + padding
+        )
 
     plt.axhline(0)
     plt.axvline(0)
