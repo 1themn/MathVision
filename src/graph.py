@@ -18,7 +18,7 @@ transformations = standard_transformations + (
 def parse_equation(equation):
     x = sp.symbols("x")
 
-    try:
+    try: 
         expression = parse_expr(
             equation,
             transformations=transformations

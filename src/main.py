@@ -27,6 +27,6 @@ x_values, y_values = calculate_values(
     x_min,
     x_max,
     points
-)
+)   
 
 plot_graph(x_values, y_values, expression)
