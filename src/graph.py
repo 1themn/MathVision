@@ -1,5 +1,6 @@
 import numpy as np
 import sympy as sp
+from dataclasses import dataclass
 
 
 @dataclass
@@ -46,6 +47,12 @@ def calculate_values(expression, x, x_min, x_max, points):
     y_values = np.asarray(y_values, dtype=float)
 
     y_values[~np.isfinite(y_values)] = np.nan
+    jumps = np.abs(np.diff(y_values))
+
+    threshold = 100
+
+    y_values[:-1][jumps > threshold] = np.nan
+    y_values[1:][jumps > threshold] = np.nan
 
     return GraphData(
         x_values,

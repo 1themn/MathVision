@@ -20,22 +20,12 @@ x_max = float(input("Enter x maximum: "))
 points = int(input("Enter number of points: "))
 
 
-try:
-    x, expression = parse_equation(equation)
-except ValueError as error:
-    print(error)
-    exit()
+
 
 graphs = []
 
 for x, expression in equations:
-    x_values, y_values = calculate_values(
-        expression,
-        x,
-        x_min,
-        x_max,
-        points
-    )
+    
 
     graphs.append(
         calculate_values(
