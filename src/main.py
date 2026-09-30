@@ -1,12 +1,17 @@
 from graph import parse_equation, calculate_values, plot_graph
 
 
+equations = []
+
 while True:
-    equation = input("Enter an equation in x: ")
+    equation = input("Enter an equation (or 'done' to finish): ")
+
+    if equation.lower() == "done":
+        break
 
     try:
         x, expression = parse_equation(equation)
-        break
+        equations.append((x, expression))
     except ValueError as error:
         print(error)
 
@@ -21,12 +26,17 @@ except ValueError as error:
     print(error)
     exit()
 
-x_values, y_values = calculate_values(
-    expression,
-    x,
-    x_min,
-    x_max,
-    points
-)   
+graphs = []
 
-plot_graph(x_values, y_values, expression)
+for x, expression in equations:
+    x_values, y_values = calculate_values(
+        expression,
+        x,
+        x_min,
+        x_max,
+        points
+    )
+
+    graphs.append((x_values, y_values, expression)) 
+
+plot_graph(graphs)

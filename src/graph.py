@@ -1,6 +1,8 @@
 import numpy as np
 import sympy as sp
 
+
+
 from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
@@ -45,8 +47,13 @@ def calculate_values(expression, x, x_min, x_max, points):
 import matplotlib.pyplot as plt
 
 
-def plot_graph(x_values, y_values, expression):
-    plt.plot(x_values, y_values)
+def plot_graph(graphs):
+    for x_values, y_values, expression in graphs:
+        plt.plot(
+            x_values,
+            y_values,
+            label=f"y = {expression}"
+        )
 
     plt.axhline(0)
     plt.axvline(0)
@@ -56,6 +63,6 @@ def plot_graph(x_values, y_values, expression):
     plt.xlabel("x")
     plt.ylabel("y")
 
-    plt.title(f"y = {expression}")
+    plt.legend()
 
     plt.show()
