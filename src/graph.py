@@ -18,10 +18,13 @@ transformations = standard_transformations + (
 def parse_equation(equation):
     x = sp.symbols("x")
 
-    expression = parse_expr(
-        equation,
-        transformations=transformations
-    )
+    try:
+        expression = parse_expr(
+            equation,
+            transformations=transformations
+        )
+    except (SyntaxError, TypeError, ValueError):
+        raise ValueError("Invalid equation")
 
     return x, expression
 
