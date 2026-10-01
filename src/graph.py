@@ -2,6 +2,12 @@ import numpy as np
 import sympy as sp
 from dataclasses import dataclass
 
+@dataclass
+class Equation:
+    equation_type: str
+    expression: sp.Expr
+    x: sp.Symbol
+    y: sp.Symbol
 
 @dataclass
 class GraphData:
@@ -26,16 +32,31 @@ transformations = standard_transformations + (
 
 def parse_equation(equation):
     x = sp.symbols("x")
+    y = sp.symbols("y")
 
-    try: 
-        expression = parse_expr(
-            equation,
-            transformations=transformations
-        )
+    try:
+        if "=" in equation:
+            left, right = equation.split("=", 1)
+
+            expression = parse_expr(
+                left,
+                transformations=transformations
+            ) - parse_expr(
+                right,
+                transformations=transformations
+            )
+        else:
+            expression = parse_expr(
+                equation,
+                transformations=transformations
+            )
     except (SyntaxError, TypeError, ValueError):
         raise ValueError("Invalid equation")
 
-    return x, expression
+    if expression.has(y):
+        return Equation("implicit", expression, x, y)
+
+    return Equation("explicit", expression, x, y)
 
 def calculate_values(expression, x, x_min, x_max, points):
     x_values = np.linspace(x_min, x_max, points)
@@ -60,13 +81,27 @@ def calculate_values(expression, x, x_min, x_max, points):
         expression
     )
 
+def calculate_implicit_values(expression, x_min, x_max, y_min, y_max, points):
+    x_values = np.linspace(x_min, x_max, points)
+    y_values = np.linspace(y_min, y_max, points)
+
+    X, Y = np.meshgrid(x_values, y_values)
+
+    function = sp.lambdify(
+        ("x", "y"),
+        expression,
+        "numpy"
+    )
+
+    Z = function(X, Y)
+
+    return X, Y, Z
 
 import matplotlib.pyplot as plt
 
 
-def plot_graph(graphs):
-    all_y_values = []
-
+def plot_graph(graphs, y_min, y_max):
+    
     for graph in graphs:
         plt.plot(
             graph.x_values,
@@ -74,22 +109,15 @@ def plot_graph(graphs):
             label=f"y = {graph.expression}"
         )
 
-        valid_y = graph.y_values[np.isfinite(graph.y_values)]
-        all_y_values.extend(valid_y)
-
-    if all_y_values:
-        y_min = min(all_y_values)
-        y_max = max(all_y_values)
-
-        padding = (y_max - y_min) * 0.05
-
-        plt.ylim(
-            y_min - padding,
-            y_max + padding
-        )
-
     plt.axhline(0)
     plt.axvline(0)
+
+    plt.xlim(
+        graphs[0].x_values.min(),
+        graphs[0].x_values.max()
+    )
+
+    plt.ylim(y_min, y_max)
 
     plt.grid(True)
 
@@ -99,3 +127,27 @@ def plot_graph(graphs):
     plt.legend()
 
     plt.show()
+
+
+def plot_implicit(X, Y, Z, expression):
+    plt.contour(
+        X,
+        Y,
+        Z,
+        levels=[0]
+    )
+
+    plt.axhline(0)
+    plt.axvline(0)
+
+    plt.grid(True)
+    plt.axis("equal")
+
+    plt.xlabel("x")
+    plt.ylabel("y")
+
+    plt.title(f"{expression} = 0")
+
+    plt.show()
+
+    
