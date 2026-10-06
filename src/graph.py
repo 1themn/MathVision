@@ -42,28 +42,74 @@ def parse_equation(equation):
     y = sp.symbols("y")
 
     try:
-        if "=" in equation:
-            left, right = equation.split("=", 1)
 
-            expression = parse_expr(
-                left,
-                transformations=transformations
-            ) - parse_expr(
-                right,
-                transformations=transformations
-            )
-        else:
-            expression = parse_expr(
-                equation,
+        # Equation contains =
+        if "=" in equation:
+            left_text, right_text = equation.split("=", 1)
+
+            left = parse_expr(
+                left_text,
                 transformations=transformations
             )
+
+            right = parse_expr(
+                right_text,
+                transformations=transformations
+            )
+
+            # y = f(x)
+            if left == y and not right.has(y):
+                return Equation(
+                    "explicit",
+                    right,
+                    x,
+                    y
+                )
+
+            # f(x) = y
+            if right == y and not left.has(y):
+                return Equation(
+                    "explicit",
+                    left,
+                    x,
+                    y
+                )
+
+            # Otherwise treat it as implicit
+            expression = left - right
+
+            return Equation(
+                "implicit",
+                expression,
+                x,
+                y
+            )
+
+        # No = sign
+        expression = parse_expr(
+            equation,
+            transformations=transformations
+        )
+
+        # Contains y → implicit
+        if expression.has(y):
+            return Equation(
+                "implicit",
+                expression,
+                x,
+                y
+            )
+
+        # Only function of x
+        return Equation(
+            "explicit",
+            expression,
+            x,
+            y
+        )
+
     except (SyntaxError, TypeError, ValueError):
         raise ValueError("Invalid equation")
-
-    if expression.has(y):
-        return Equation("implicit", expression, x, y)
-
-    return Equation("explicit", expression, x, y)
 
 def calculate_values(expression, x, x_min, x_max, points):
     x_values = np.linspace(x_min, x_max, points)
@@ -112,35 +158,53 @@ def calculate_implicit_values(expression, x_min, x_max, y_min, y_max, points):
 import matplotlib.pyplot as plt
 
 
-def plot_all(explicit_graphs, implicit_graphs, y_min, y_max):
+def plot_all(
+    explicit_graphs,
+    implicit_graphs,
+    x_min,
+    x_max,
+    y_min,
+    y_max
+):
+    fig, ax = plt.subplots(figsize=(9, 7))
 
-    # Plot explicit equations
+    # Explicit equations
     for graph in explicit_graphs:
-        plt.plot(
+        ax.plot(
             graph.x_values,
             graph.y_values,
             label=f"y = {graph.expression}"
         )
 
-    # Plot implicit equations
+    # Implicit equations
     for graph in implicit_graphs:
-        plt.contour(
+        contour = ax.contour(
             graph.X,
             graph.Y,
             graph.Z,
             levels=[0]
         )
 
-    plt.axhline(0)
-    plt.axvline(0)
+        # Give implicit contours a legend label
+        if contour.collections:
+            contour.collections[0].set_label(
+                f"{graph.expression} = 0"
+            )
 
-    plt.ylim(y_min, y_max)
+    # Coordinate axes
+    ax.axhline(0)
+    ax.axvline(0)
 
-    plt.grid(True)
+    # User-selected view
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
 
-    plt.xlabel("x")
-    plt.ylabel("y")
+    ax.grid(True)
 
-    plt.legend()
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
+    ax.set_aspect("equal", adjustable="box")
+    ax.legend()
 
     plt.show()

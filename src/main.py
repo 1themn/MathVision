@@ -83,6 +83,8 @@ for equation in equations:
 plot_all(
     explicit_graphs,
     implicit_graphs,
+    x_min,
+    x_max,
     y_min,
     y_max
 )
