@@ -2,10 +2,11 @@ from graph import (
     parse_equation,
     calculate_values,
     calculate_implicit_values,
-    plot_graph,
-    plot_implicit,
+    plot_all,
 )
 
+
+# Store equations entered by the user
 equations = []
 
 while True:
@@ -17,110 +18,71 @@ while True:
     try:
         equation_data = parse_equation(equation)
         equations.append(equation_data)
-        
 
     except ValueError as error:
         print(error)
 
+if not equations:
+    print("No equations entered.")
+    exit()
 
-explicit_equations = []
-implicit_equations = []
 
+# Graph settings
+x_min = float(input("Enter x minimum: "))
+x_max = float(input("Enter x maximum: "))
+y_min = float(input("Enter y minimum: "))
+y_max = float(input("Enter y maximum: "))
+points = int(input("Enter number of points: "))
+
+if x_min >= x_max:
+    print("x minimum must be smaller than x maximum.")
+    exit()
+
+if y_min >= y_max:
+    print("y minimum must be smaller than y maximum.")
+    exit()
+
+if points < 2:
+    print("Number of points must be at least 2.")
+    exit()
+
+# Store calculated graph data
+explicit_graphs = []
+implicit_graphs = []
+
+
+# Calculate each equation
 for equation in equations:
 
     if equation.equation_type == "explicit":
-        explicit_equations.append(
-            (equation.expression, equation.x)
+
+        graph = calculate_values(
+            equation.expression,
+            equation.x,
+            x_min,
+            x_max,
+            points
         )
+
+        explicit_graphs.append(graph)
 
     else:
-        implicit_equations.append(
-            equation.expression
-        )
-
-
-
-x_min = float(input("Enter x minimum: "))
-x_max = float(input("Enter x maximum: "))
-points = int(input("Enter number of points: "))
-y_min = float(input("Enter y minimum: "))
-y_max = float(input("Enter y maximum: "))
-
-
-
-graphs = []
-
-for expression, x in explicit_equations:
-    graph = calculate_values(
-        expression,
-        x,
-        x_min,
-        x_max,
-        points
-    )
-
-    graphs.append(graph)
-
-if graphs:
-    plot_graph(
-        graphs,
-        y_min,
-        y_max
-    )
-
-
-for expression in implicit_equations:
-
-    X, Y, Z = calculate_implicit_values(
-        expression,
+        graph = calculate_implicit_values(
+        equation.expression,
         x_min,
         x_max,
         y_min,
         y_max,
         points
-    )
+        )
 
-    plot_implicit(
-        X,
-        Y,
-        Z,
-        expression
-    )
-
-# print(equation_type)
-# print(expression)
+        implicit_graphs.append(graph)
 
 
-# graphs = []
-
-# for x, expression in equations:
-    
-
-#     graphs.append(
-#         calculate_values(
-#             expression,
-#             x,
-#             x_min,
-#             x_max,
-#             points
-#         )
-#     )
-
-
-# plot_graph(graphs, y_min, y_max)
-
-# X, Y, Z = calculate_implicit_values(
-#     expression,
-#     -10,
-#     10,
-#     -10,
-#     10,
-#     500
-# )
-
-# plot_implicit(
-#     X,
-#     Y,
-#     Z,
-#     expression
-# )
+# Plot everything on the same graph
+plot_all(
+    explicit_graphs,
+    implicit_graphs,
+    y_min,
+    y_max
+)

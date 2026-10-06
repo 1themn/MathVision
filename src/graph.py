@@ -15,6 +15,13 @@ class GraphData:
     y_values: np.ndarray
     expression: sp.Expr
 
+@dataclass
+class ImplicitGraphData:
+    X: np.ndarray
+    Y: np.ndarray
+    Z: np.ndarray
+    expression: sp.Expr
+
 
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -95,27 +102,37 @@ def calculate_implicit_values(expression, x_min, x_max, y_min, y_max, points):
 
     Z = function(X, Y)
 
-    return X, Y, Z
+    return ImplicitGraphData(
+    X,
+    Y,
+    Z,
+    expression
+)
 
 import matplotlib.pyplot as plt
 
 
-def plot_graph(graphs, y_min, y_max):
-    
-    for graph in graphs:
+def plot_all(explicit_graphs, implicit_graphs, y_min, y_max):
+
+    # Plot explicit equations
+    for graph in explicit_graphs:
         plt.plot(
             graph.x_values,
             graph.y_values,
             label=f"y = {graph.expression}"
         )
 
+    # Plot implicit equations
+    for graph in implicit_graphs:
+        plt.contour(
+            graph.X,
+            graph.Y,
+            graph.Z,
+            levels=[0]
+        )
+
     plt.axhline(0)
     plt.axvline(0)
-
-    plt.xlim(
-        graphs[0].x_values.min(),
-        graphs[0].x_values.max()
-    )
 
     plt.ylim(y_min, y_max)
 
@@ -127,27 +144,3 @@ def plot_graph(graphs, y_min, y_max):
     plt.legend()
 
     plt.show()
-
-
-def plot_implicit(X, Y, Z, expression):
-    plt.contour(
-        X,
-        Y,
-        Z,
-        levels=[0]
-    )
-
-    plt.axhline(0)
-    plt.axvline(0)
-
-    plt.grid(True)
-    plt.axis("equal")
-
-    plt.xlabel("x")
-    plt.ylabel("y")
-
-    plt.title(f"{expression} = 0")
-
-    plt.show()
-
-    
