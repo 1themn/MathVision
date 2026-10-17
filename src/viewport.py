@@ -30,9 +30,9 @@ class Viewport:
         old_scale = self.scale
         new_scale = old_scale * factor
 
-        # Prevent extreme zoom levels
-        # if new_scale < 0.01 or new_scale > 10000:
-        #     return
+        Prevent extreme zoom levels
+        if new_scale < 0.01 or new_scale > 10000:
+            return
 
         ratio = new_scale / old_scale
 
