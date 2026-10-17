@@ -1,35 +1,63 @@
 import numpy as np
 
+from graph import calculate_values
+
 
 class EquationRenderer:
     def __init__(self, canvas, viewport):
         self.canvas = canvas
         self.viewport = viewport
 
-    def draw_explicit(self, function):
+    def draw_explicit(self, equation):
         left, right, bottom, top = (
             self.viewport.get_visible_bounds()
         )
 
-        x_values = np.linspace(left, right, 1000)
-        y_values = function(x_values)
+        points_count = max(
+            1000,
+            int(self.viewport.width)
+        )
 
-        points = []
+        graph = calculate_values(
+            equation.expression,
+            equation.x,
+            left,
+            right,
+            points_count
+        )
 
-        for x, y in zip(x_values, y_values):
+        segment = []
+
+        def draw_segment():
+            if len(segment) >= 4:
+                self.canvas.create_line(
+                    *segment,
+                    fill="#60a5fa",
+                    width=2
+                )
+
+        for x, y in zip(
+            graph.x_values,
+            graph.y_values
+        ):
             if not np.isfinite(y):
+                draw_segment()
+                segment = []
                 continue
 
             screen_x, screen_y = (
-                self.viewport.math_to_screen(x, y)
+                self.viewport.math_to_screen(
+                    float(x),
+                    float(y)
+                )
             )
 
-            points.extend([screen_x, screen_y])
+            # avoiding extremely large values.
+            if not np.isfinite(screen_y):
+                draw_segment()
+                segment = []
+                continue
 
-        if len(points) >= 4:
-            self.canvas.create_line(
-                *points,
-                fill="#60a5fa",
-                width=3,
-                smooth=False
-            )
+            segment.extend([screen_x, screen_y])
+
+        draw_segment()

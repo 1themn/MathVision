@@ -1,90 +1,165 @@
-from graph import (
-    parse_equation,
-    calculate_values,
-    calculate_implicit_values,
-    plot_all,
+
+import tkinter as tk
+from viewport import Viewport
+import math
+from grid import GridRenderer
+from graph import parse_equation
+from equation_renderer import EquationRenderer
+
+WIDTH = 1500
+HEIGHT = 1000
+SCALE = 50
+
+viewport = Viewport(WIDTH, HEIGHT, SCALE)
+
+
+
+root = tk.Tk()
+root.title("Infinite Grid")
+root.geometry(f"{WIDTH}x{HEIGHT}")
+
+canvas = tk.Canvas(
+    root,
+    width=WIDTH,
+    height=HEIGHT,
+    bg="#101827",
+    highlightthickness=0
 )
 
-
-# Store equations entered by the user
-equations = []
-
-while True:
-    equation = input("Enter an equation (or 'done' to finish): ")
-
-    if equation.lower() == "done":
-        break
-
-    try:
-        equation_data = parse_equation(equation)
-        equations.append(equation_data)
-
-    except ValueError as error:
-        print(error)
-
-if not equations:
-    print("No equations entered.")
-    exit()
+canvas.pack(fill=tk.BOTH, expand=True)
 
 
-# Graph settings
-x_min = float(input("Enter x minimum: "))
-x_max = float(input("Enter x maximum: "))
-y_min = float(input("Enter y minimum: "))
-y_max = float(input("Enter y maximum: "))
-points = int(input("Enter number of points: "))
 
-if x_min >= x_max:
-    print("x minimum must be smaller than x maximum.")
-    exit()
+origin_x = WIDTH / 2
+origin_y = HEIGHT / 2
 
-if y_min >= y_max:
-    print("y minimum must be smaller than y maximum.")
-    exit()
+renderer = GridRenderer(canvas, viewport)
 
-if points < 2:
-    print("Number of points must be at least 2.")
-    exit()
+equation_renderer = EquationRenderer(
+    canvas,
+    viewport
+)
 
-# Store calculated graph data
-explicit_graphs = []
-implicit_graphs = []
+equation = parse_equation("y = sin(x)")
+
+def draw_grid():
+    renderer.draw()
+
+    equation_renderer.draw_explicit(equation)
 
 
-# Calculate each equation
-for equation in equations:
 
-    if equation.equation_type == "explicit":
 
-        graph = calculate_values(
-            equation.expression,
-            equation.x,
-            x_min,
-            x_max,
-            points
-        )
+def handle_resize(event):
+    viewport.width = event.width
+    viewport.height = event.height
 
-        explicit_graphs.append(graph)
+    draw_grid()
+
+
+def format_coordinate(value):
+    if abs(value) < 1e-10:
+        return "0"
+
+    return f"{value:.10g}"
+
+
+draw_grid()
+
+
+
+last_mouse_x = 0
+last_mouse_y = 0
+
+
+def start_pan(event):
+    global last_mouse_x, last_mouse_y
+
+    last_mouse_x = event.x
+    last_mouse_y = event.y
+
+
+def drag_pan(event):
+    global last_mouse_x, last_mouse_y
+
+    dx = event.x - last_mouse_x
+    dy = event.y - last_mouse_y
+
+    viewport.pan(dx, dy)
+
+    last_mouse_x = event.x
+    last_mouse_y = event.y
+
+    draw_grid()
+
+
+
+
+
+
+def normalize_delta(delta):
+    value = delta & 0xFFFF
+
+    if value >= 32768:
+        value -= 65536
+
+    return value
+
+
+def handle_touchpad_zoom(event):
+    delta = normalize_delta(event.delta)
+
+    if delta == 0:
+        return
+
+    # Limit unusually large movements
+    delta = max(-20, min(20, delta))
+
+    # Smooth proportional zoom
+    factor = 1.003 ** delta
+
+    viewport.zoom(event.x, event.y, factor)
+    draw_grid()
+
+
+
+
+
+
+
+def handle_mouse_zoom(event):
+    if getattr(event, "num", None) == 4:
+        factor = 1.1
+
+    elif getattr(event, "num", None) == 5:
+        factor = 1 / 1.1
+
+    elif getattr(event, "delta", 0) > 0:
+        factor = 1.1
+
+    elif getattr(event, "delta", 0) < 0:
+        factor = 1 / 1.1
 
     else:
-        graph = calculate_implicit_values(
-        equation.expression,
-        x_min,
-        x_max,
-        y_min,
-        y_max,
-        points
-        )
+        return
 
-        implicit_graphs.append(graph)
+    viewport.zoom(event.x, event.y, factor)
+    draw_grid()
 
 
-# Plot everything on the same graph
-plot_all(
-    explicit_graphs,
-    implicit_graphs,
-    x_min,
-    x_max,
-    y_min,
-    y_max
-)
+
+
+
+
+canvas.bind("<ButtonPress-1>", start_pan)
+canvas.bind("<B1-Motion>", drag_pan)
+
+canvas.bind("<TouchpadScroll>", handle_touchpad_zoom)
+canvas.bind("<MouseWheel>", handle_mouse_zoom)
+
+# Linux mouse wheel support
+canvas.bind("<Button-4>", handle_mouse_zoom)
+canvas.bind("<Button-5>", handle_mouse_zoom)
+
+canvas.bind("<Configure>", handle_resize)
+root.mainloop()
