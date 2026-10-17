@@ -3,6 +3,7 @@ import tkinter as tk
 from viewport import Viewport
 import math
 from grid import GridRenderer
+from equation_renderer import EquationRenderer
 
 WIDTH = 1500
 HEIGHT = 1000
@@ -32,10 +33,14 @@ origin_x = WIDTH / 2
 origin_y = HEIGHT / 2
 
 renderer = GridRenderer(canvas, viewport)
-
+equation_renderer = EquationRenderer(canvas, viewport)
 
 def draw_grid():
     renderer.draw()
+
+    equation_renderer.draw_explicit(
+        lambda x: x**2
+    )
 
 
 
