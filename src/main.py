@@ -18,15 +18,37 @@ root = tk.Tk()
 root.title("Infinite Grid")
 root.geometry(f"{WIDTH}x{HEIGHT}")
 
-canvas = tk.Canvas(
+sidebar = tk.Frame(
     root,
-    width=WIDTH,
-    height=HEIGHT,
+    width=280,
+    bg="#1e293b"
+)
+
+sidebar.pack(
+    side=tk.LEFT,
+    fill=tk.Y
+)
+
+sidebar.pack_propagate(False)
+
+graph_frame = tk.Frame(root)
+
+graph_frame.pack(
+    side=tk.RIGHT,
+    fill=tk.BOTH,
+    expand=True
+)
+
+canvas = tk.Canvas(
+    graph_frame,
     bg="#101827",
     highlightthickness=0
 )
 
-canvas.pack(fill=tk.BOTH, expand=True)
+canvas.pack(
+    fill=tk.BOTH,
+    expand=True
+)
 
 
 
@@ -40,12 +62,174 @@ equation_renderer = EquationRenderer(
     viewport
 )
 
-equation = parse_equation("y = sin(x)")
+equations = []
+
 
 def draw_grid():
     renderer.draw()
 
-    equation_renderer.draw_explicit(equation)
+    for item in equations:
+        if not item["visible"].get():
+            continue
+
+        equation_renderer.draw_explicit(
+            item["equation"],
+            item["color"]
+        )
+
+
+equation_label = tk.Label(
+    sidebar,
+    text="Equations",
+    bg="#1e293b",
+    fg="white",
+    font=("Arial", 14, "bold")
+)
+
+equation_label.pack(
+    anchor="w",
+    padx=10,
+    pady=(15, 10)
+)
+
+equation_entry = tk.Entry(
+    sidebar,
+    font=("Arial", 12)
+)
+
+equation_entry.pack(
+    fill=tk.X,
+    padx=10,
+    pady=5
+)
+
+add_button = tk.Button(
+    sidebar,
+    text="Add Equation",
+    command=lambda: add_equation()
+)
+
+add_button.pack(
+    fill=tk.X,
+    padx=10,
+    pady=5
+)
+error_label = tk.Label(
+    sidebar,
+    text="",
+    fg="#f87171",
+    bg="#1e293b",
+    wraplength=250
+)
+
+error_label.pack(fill=tk.X, padx=10)
+equation_entry.bind(
+    "<Return>",
+    lambda event: add_equation()
+)
+equation_frame = tk.Frame(
+    sidebar,
+    bg="#1e293b"
+)
+
+equation_frame.pack(
+    fill=tk.X,
+    padx=10,
+    pady=10
+)
+COLORS = [
+    "#60a5fa",
+    "#f472b6",
+    "#4ade80",
+    "#facc15",
+    "#c084fc"
+]
+
+def add_equation():
+    equation_text = equation_entry.get().strip()
+
+    if not equation_text:
+        return
+
+    try:
+        parsed_equation = parse_equation(equation_text)
+
+        if parsed_equation.equation_type != "explicit":
+            error_label.config(
+                text="Implicit equations are not supported yet."
+            )
+            return
+
+    except (ValueError, SyntaxError, TypeError):
+        error_label.config(text="Invalid equation.")
+        return
+
+    error_label.config(text="")
+
+    equation_data = {
+        "equation": parsed_equation,
+        "text": equation_text,
+        "color": COLORS[len(equations) % len(COLORS)],
+        "visible": tk.BooleanVar(value=True)
+    }
+
+    equations.append(equation_data)
+
+    create_equation_row(equation_data)
+
+    equation_entry.delete(0, tk.END)
+
+    draw_grid()
+
+def remove_equation(equation_data, row):
+    equations.remove(equation_data)
+
+    row.destroy()
+
+    draw_grid()
+
+def create_equation_row(equation_data):
+    row = tk.Frame(
+        equation_frame,
+        bg="#1e293b"
+    )
+
+    row.pack(fill=tk.X, pady=4)
+
+    checkbox = tk.Checkbutton(
+        row,
+        variable=equation_data["visible"],
+        command=draw_grid,
+        bg="#1e293b",
+        activebackground="#1e293b"
+    )
+
+    checkbox.pack(side=tk.LEFT)
+
+    label = tk.Label(
+        row,
+        text=equation_data["text"],
+        fg=equation_data["color"],
+        bg="#1e293b",
+        anchor="w"
+    )
+
+    label.pack(
+        side=tk.LEFT,
+        fill=tk.X,
+        expand=True
+    )
+
+    remove_button = tk.Button(
+        row,
+        text="×",
+        command=lambda: remove_equation(
+            equation_data,
+            row
+        )
+    )
+
+    remove_button.pack(side=tk.RIGHT)
 
 
 

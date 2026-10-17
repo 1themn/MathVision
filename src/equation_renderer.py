@@ -8,7 +8,7 @@ class EquationRenderer:
         self.canvas = canvas
         self.viewport = viewport
 
-    def draw_explicit(self, equation):
+    def draw_explicit(self, equation, color="#60a5fa"):
         left, right, bottom, top = (
             self.viewport.get_visible_bounds()
         )
@@ -32,7 +32,7 @@ class EquationRenderer:
             if len(segment) >= 4:
                 self.canvas.create_line(
                     *segment,
-                    fill="#60a5fa",
+                    fill=color,
                     width=2
                 )
 
