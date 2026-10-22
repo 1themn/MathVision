@@ -72,10 +72,19 @@ def draw_grid():
         if not item["visible"].get():
             continue
 
-        equation_renderer.draw_explicit(
-            item["equation"],
-            item["color"]
-        )
+        equation = item["equation"]
+        color = item["color"]
+
+        if equation.equation_type == "explicit":
+            equation_renderer.draw_explicit(
+                equation,
+                color
+            )
+        else:
+            equation_renderer.draw_implicit(
+                equation,
+                color
+            )
 
 
 equation_label = tk.Label(
@@ -154,11 +163,7 @@ def add_equation():
     try:
         parsed_equation = parse_equation(equation_text)
 
-        if parsed_equation.equation_type != "explicit":
-            error_label.config(
-                text="Implicit equations are not supported yet."
-            )
-            return
+        
 
     except (ValueError, SyntaxError, TypeError):
         error_label.config(text="Invalid equation.")
