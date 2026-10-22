@@ -10,13 +10,22 @@ class EquationRenderer:
         self.canvas = canvas
         self.viewport = viewport
 
-
     def draw_implicit(self, equation, color="#60a5fa"):
+        target_spacing = 4
+
+        x_points = max(
+            100,
+            min(600, int(self.viewport.width / target_spacing) + 1)
+        )
+
+        y_points = max(
+            100,
+            min(600, int(self.viewport.height / target_spacing) + 1)
+        )
         left, right, bottom, top = (
             self.viewport.get_visible_bounds()
         )
 
-        # Step 1: Numerical evaluation
         start = time.perf_counter()
 
         graph = calculate_implicit_values(
@@ -25,12 +34,12 @@ class EquationRenderer:
             right,
             bottom,
             top,
-            200
+            x_points,
+            y_points
         )
 
         evaluation_time = time.perf_counter()
 
-        # Step 2: Marching Squares
         segments = marching_squares(
             graph.X,
             graph.Y,
@@ -39,7 +48,6 @@ class EquationRenderer:
 
         contour_time = time.perf_counter()
 
-        # Step 3: Tkinter rendering
         for p1, p2 in segments:
             x1, y1 = self.viewport.math_to_screen(*p1)
             x2, y2 = self.viewport.math_to_screen(*p2)
@@ -59,7 +67,6 @@ class EquationRenderer:
             f"Canvas: {(drawing_time - contour_time) * 1000:.2f} ms | "
             f"Segments: {len(segments)}"
         )
-
 
     def draw_explicit(self, equation, color="#60a5fa"):
         left, right, bottom, top = (

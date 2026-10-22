@@ -22,7 +22,6 @@ class ImplicitGraphData:
     Z: np.ndarray
     expression: sp.Expr
 
-
 from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
@@ -30,20 +29,16 @@ from sympy.parsing.sympy_parser import (
     convert_xor,
 )
 
-
 transformations = standard_transformations + (
     convert_xor,
     implicit_multiplication_application,
 )
-
 
 def parse_equation(equation):
     x = sp.symbols("x")
     y = sp.symbols("y")
 
     try:
-
-        # Equation contains =
         if "=" in equation:
             left_text, right_text = equation.split("=", 1)
 
@@ -57,7 +52,6 @@ def parse_equation(equation):
                 transformations=transformations
             )
 
-            # y = f(x)
             if left == y and not right.has(y):
                 return Equation(
                     "explicit",
@@ -66,7 +60,6 @@ def parse_equation(equation):
                     y
                 )
 
-            # f(x) = y
             if right == y and not left.has(y):
                 return Equation(
                     "explicit",
@@ -75,7 +68,6 @@ def parse_equation(equation):
                     y
                 )
 
-            # Otherwise treat it as implicit
             expression = left - right
 
             return Equation(
@@ -85,13 +77,11 @@ def parse_equation(equation):
                 y
             )
 
-        # No = sign
         expression = parse_expr(
             equation,
             transformations=transformations
         )
 
-        # Contains y → implicit
         if expression.has(y):
             return Equation(
                 "implicit",
@@ -100,7 +90,6 @@ def parse_equation(equation):
                 y
             )
 
-        # Only function of x
         return Equation(
             "explicit",
             expression,
@@ -134,9 +123,17 @@ def calculate_values(expression, x, x_min, x_max, points):
         expression
     )
 
-def calculate_implicit_values(expression, x_min, x_max, y_min, y_max, points):
-    x_values = np.linspace(x_min, x_max, points)
-    y_values = np.linspace(y_min, y_max, points)
+def calculate_implicit_values(
+    expression,
+    x_min,
+    x_max,
+    y_min,
+    y_max,
+    x_points=200,
+    y_points=200
+):
+    x_values = np.linspace(x_min, x_max, x_points)
+    y_values = np.linspace(y_min, y_max, y_points)
 
     X, Y = np.meshgrid(x_values, y_values)
 
@@ -157,7 +154,6 @@ def calculate_implicit_values(expression, x_min, x_max, y_min, y_max, points):
 
 import matplotlib.pyplot as plt
 
-
 def plot_all(
     explicit_graphs,
     implicit_graphs,
@@ -168,7 +164,6 @@ def plot_all(
 ):
     fig, ax = plt.subplots(figsize=(9, 7))
 
-    # Explicit equations
     for graph in explicit_graphs:
         ax.plot(
             graph.x_values,
@@ -176,7 +171,6 @@ def plot_all(
             label=f"y = {graph.expression}"
         )
 
-    # Implicit equations
     for graph in implicit_graphs:
         contour = ax.contour(
             graph.X,
@@ -185,17 +179,14 @@ def plot_all(
             levels=[0]
         )
 
-        # Give implicit contours a legend label
         if contour.collections:
             contour.collections[0].set_label(
                 f"{graph.expression} = 0"
             )
 
-    # Coordinate axes
     ax.axhline(0)
     ax.axvline(0)
 
-    # User-selected view
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
 
