@@ -5,6 +5,7 @@ import math
 from grid import GridRenderer
 from graph import parse_equation
 from equation_renderer import EquationRenderer
+import time
 
 WIDTH = 1500
 HEIGHT = 1000

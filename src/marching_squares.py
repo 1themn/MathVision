@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def interpolate(p1, p2, v1, v2):
     if v1 == v2:
         t = 0.5
@@ -32,8 +35,17 @@ def marching_squares(X, Y, Z):
                 Z[i+1, j+1],
                 Z[i+1, j]
             ]
+            if not np.all(np.isfinite(values)):
+                continue
 
-            crossings = []
+            epsilon = 1e-12
+
+            sign_values = [
+                epsilon if value == 0 else value
+                for value in values
+            ]
+                
+            crossings = {}
 
             for k in range(4):
                 next_k = (k + 1) % 4
@@ -41,19 +53,37 @@ def marching_squares(X, Y, Z):
                 v1 = values[k]
                 v2 = values[next_k]
 
-                if (v1 < 0) != (v2 < 0):
+                if (sign_values[k] < 0) != (sign_values[next_k] < 0):
                     crossing = interpolate(
                         points[k],
                         points[next_k],
-                        v1,
-                        v2
+                        values[k],
+                        values[next_k]
                     )
 
-                    crossings.append(crossing)
+                    crossings[k] = crossing
+            
 
             if len(crossings) == 2:
-                segments.append(
-                    (crossings[0], crossings[1])
-                )
+                p1, p2 = crossings.values()
+                segments.append((p1, p2))
+            elif len(crossings) == 4:
+                center_value = sum(values) / 4
+
+                if center_value >= 0:
+                    if values[0] < 0:
+                        edge_pairs = [(0, 3), (1, 2)]
+                    else:
+                        edge_pairs = [(0, 1), (2, 3)]
+                else:
+                    if values[0] > 0:
+                        edge_pairs = [(0, 3), (1, 2)]
+                    else:
+                        edge_pairs = [(0, 1), (2, 3)]
+
+                for edge1, edge2 in edge_pairs:
+                    segments.append(
+                        (crossings[edge1], crossings[edge2])
+                    )
 
     return segments
