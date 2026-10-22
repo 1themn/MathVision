@@ -62,6 +62,9 @@ class EquationRenderer:
         )
 
         segment = []
+        previous_y = None
+
+        max_jump = self.viewport.height
 
         def draw_segment():
             if len(segment) >= 4:
@@ -71,28 +74,32 @@ class EquationRenderer:
                     width=2
                 )
 
-        for x, y in zip(
-            graph.x_values,
-            graph.y_values
-        ):
+        for x, y in zip(graph.x_values, graph.y_values):
+
             if not np.isfinite(y):
                 draw_segment()
                 segment = []
+                previous_y = None
                 continue
 
-            screen_x, screen_y = (
-                self.viewport.math_to_screen(
-                    float(x),
-                    float(y)
-                )
+            screen_x, screen_y = self.viewport.math_to_screen(
+                float(x),
+                float(y)
             )
 
-            # avoiding extremely large values.
             if not np.isfinite(screen_y):
                 draw_segment()
                 segment = []
+                previous_y = None
                 continue
 
+            if previous_y is not None:
+                if abs(screen_y - previous_y) > max_jump:
+                    draw_segment()
+                    segment = []
+
             segment.extend([screen_x, screen_y])
+
+            previous_y = screen_y
 
         draw_segment()
