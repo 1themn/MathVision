@@ -67,6 +67,8 @@ equations = []
 
 
 def draw_grid():
+    start = time.perf_counter()
+
     renderer.draw()
 
     for item in equations:
@@ -86,6 +88,10 @@ def draw_grid():
                 equation,
                 color
             )
+
+    elapsed = (time.perf_counter() - start) * 1000
+
+    print(f"Render time: {elapsed:.2f} ms")
 
 
 equation_label = tk.Label(

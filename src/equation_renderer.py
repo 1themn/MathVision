@@ -1,7 +1,7 @@
 import numpy as np
 from graph import calculate_implicit_values
 from marching_squares import marching_squares
-
+import time
 from graph import calculate_values
 
 
@@ -16,6 +16,9 @@ class EquationRenderer:
             self.viewport.get_visible_bounds()
         )
 
+        # Step 1: Numerical evaluation
+        start = time.perf_counter()
+
         graph = calculate_implicit_values(
             equation.expression,
             left,
@@ -25,12 +28,18 @@ class EquationRenderer:
             200
         )
 
+        evaluation_time = time.perf_counter()
+
+        # Step 2: Marching Squares
         segments = marching_squares(
             graph.X,
             graph.Y,
             graph.Z
         )
 
+        contour_time = time.perf_counter()
+
+        # Step 3: Tkinter rendering
         for p1, p2 in segments:
             x1, y1 = self.viewport.math_to_screen(*p1)
             x2, y2 = self.viewport.math_to_screen(*p2)
@@ -41,6 +50,15 @@ class EquationRenderer:
                 fill=color,
                 width=2
             )
+
+        drawing_time = time.perf_counter()
+
+        print(
+            f"Evaluation: {(evaluation_time - start) * 1000:.2f} ms | "
+            f"Marching Squares: {(contour_time - evaluation_time) * 1000:.2f} ms | "
+            f"Canvas: {(drawing_time - contour_time) * 1000:.2f} ms | "
+            f"Segments: {len(segments)}"
+        )
 
 
     def draw_explicit(self, equation, color="#60a5fa"):

@@ -18,8 +18,41 @@ def marching_squares(X, Y, Z):
 
     rows, cols = Z.shape
 
-    for i in range(rows - 1):
-        for j in range(cols - 1):
+    valid = np.isfinite(Z)
+
+    # Corner validity for every cell
+    valid_cells = (
+        valid[:-1, :-1]
+        & valid[:-1, 1:]
+        & valid[1:, 1:]
+        & valid[1:, :-1]
+    )
+
+    # Classify the signs of all grid points
+    negative = Z < 0
+
+    # Corner signs for every cell
+    tl = negative[:-1, :-1]
+    tr = negative[:-1, 1:]
+    br = negative[1:, 1:]
+    bl = negative[1:, :-1]
+
+    # Candidate cells have at least one positive
+    # and at least one negative corner
+    all_negative = tl & tr & br & bl
+
+    all_nonnegative = ~(tl | tr | br | bl)
+
+    candidate_cells = (
+        valid_cells
+        & ~all_negative
+        & ~all_nonnegative
+    )
+
+    candidate_indices = np.argwhere(candidate_cells)
+    print(f"Candidate cells: {len(candidate_indices)}")
+
+    for i, j in candidate_indices:
 
             # Four corners of the current cell
             points = [
@@ -35,7 +68,12 @@ def marching_squares(X, Y, Z):
                 Z[i+1, j+1],
                 Z[i+1, j]
             ]
-            if not np.all(np.isfinite(values)):
+            if not (
+                valid[i, j]
+                and valid[i, j+1]
+                and valid[i+1, j+1]
+                and valid[i+1, j]
+            ):
                 continue
 
             epsilon = 1e-12
@@ -44,6 +82,10 @@ def marching_squares(X, Y, Z):
                 epsilon if value == 0 else value
                 for value in values
             ]
+            negative_count = sum(value < 0 for value in sign_values)
+
+            if negative_count == 0 or negative_count == 4:
+                continue
                 
             crossings = {}
 
