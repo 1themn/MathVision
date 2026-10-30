@@ -135,6 +135,9 @@ def calculate_implicit_values(
     x_values = np.linspace(x_min, x_max, x_points)
     y_values = np.linspace(y_min, y_max, y_points)
 
+    print(x_values.size)
+    print(y_values.size)
+
     X, Y = np.meshgrid(x_values, y_values)
 
     function = sp.lambdify(

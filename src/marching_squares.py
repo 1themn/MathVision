@@ -20,39 +20,10 @@ def marching_squares(X, Y, Z):
 
     valid = np.isfinite(Z)
 
-    # Corner validity for every cell
-    valid_cells = (
-        valid[:-1, :-1]
-        & valid[:-1, 1:]
-        & valid[1:, 1:]
-        & valid[1:, :-1]
-    )
 
-    # Classify the signs of all grid points
-    negative = Z < 0
 
-    # Corner signs for every cell
-    tl = negative[:-1, :-1]
-    tr = negative[:-1, 1:]
-    br = negative[1:, 1:]
-    bl = negative[1:, :-1]
-
-    # Candidate cells have at least one positive
-    # and at least one negative corner
-    all_negative = tl & tr & br & bl
-
-    all_nonnegative = ~(tl | tr | br | bl)
-
-    candidate_cells = (
-        valid_cells
-        & ~all_negative
-        & ~all_nonnegative
-    )
-
-    candidate_indices = np.argwhere(candidate_cells)
-    print(f"Candidate cells: {len(candidate_indices)}")
-
-    for i, j in candidate_indices:
+    for i in range(rows - 1):
+        for j in range(cols - 1):
 
             # Four corners of the current cell
             points = [
