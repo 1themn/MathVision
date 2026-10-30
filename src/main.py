@@ -5,7 +5,6 @@ import math
 from grid import GridRenderer
 from graph import parse_equation
 from equation_renderer import EquationRenderer
-import time
 
 WIDTH = 1500
 HEIGHT = 1000
@@ -67,7 +66,6 @@ equations = []
 
 
 def draw_grid():
-    start = time.perf_counter()
 
     renderer.draw()
 
@@ -88,10 +86,6 @@ def draw_grid():
                 equation,
                 color
             )
-
-    elapsed = (time.perf_counter() - start) * 1000
-
-    print(f"Render time: {elapsed:.2f} ms")
 
 
 equation_label = tk.Label(

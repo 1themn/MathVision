@@ -26,8 +26,6 @@ class EquationRenderer:
             self.viewport.get_visible_bounds()
         )
 
-        start = time.perf_counter()
-
         graph = calculate_implicit_values(
             equation.expression,
             left,
@@ -38,7 +36,7 @@ class EquationRenderer:
             y_points
         )
 
-        evaluation_time = time.perf_counter()
+
 
         segments = marching_squares(
             graph.X,
@@ -46,7 +44,7 @@ class EquationRenderer:
             graph.Z
         )
 
-        contour_time = time.perf_counter()
+
 
         for p1, p2 in segments:
             x1, y1 = self.viewport.math_to_screen(*p1)
@@ -59,14 +57,9 @@ class EquationRenderer:
                 width=2
             )
 
-        drawing_time = time.perf_counter()
 
-        print(
-            f"Evaluation: {(evaluation_time - start) * 1000:.2f} ms | "
-            f"Marching Squares: {(contour_time - evaluation_time) * 1000:.2f} ms | "
-            f"Canvas: {(drawing_time - contour_time) * 1000:.2f} ms | "
-            f"Segments: {len(segments)}"
-        )
+
+        
 
     def draw_explicit(self, equation, color="#60a5fa"):
         left, right, bottom, top = (
